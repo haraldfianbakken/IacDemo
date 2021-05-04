@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "customerName" : {
+            "type": "string",
+            "defaultValue": "contoso",
+            "minLength": 2
+        },
+        "customerSize" : {
+            "type": "string",
+            "defaultValue": "small",
+            "allowedValues": ["small","medium","large"]
+        }
+    },    
+    "variables": {
+        "storageName" : "[concat('stg',uniqueString(subscription().id, resourceGroup().id, parameters('customerName')))]",
+        "smallValue" : {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+        },
+        "otherValue" : {
+                "name": "Premium_LRS",
+                "tier": "Premium"
+            },
+        "storageSku" : "[if(equals(parameters('customerSize'), 'small'), variables('smallValue'), variables('otherValue'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('storageName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "tags": {
+                "displayName": "[concat('Storage for ', parameters('customerName'))]",
+                "customerName" : "[parameters('customerName')]"
+            },
+            "location": "[resourceGroup().location]",
+            "kind": "StorageV2",
+            "sku": "[variables('storageSku')]"
+        }
+    ],
+    "functions": [],
+    "outputs": {
+        "storageName": {
+            "type": "string",
+            "value" : "[variables('storageName')]"
+        }
+    }
+}
